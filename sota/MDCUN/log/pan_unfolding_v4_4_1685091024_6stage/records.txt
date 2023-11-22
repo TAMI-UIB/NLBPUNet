@@ -1,0 +1,6 @@
+Train dataset has 16 images and 16 batches.
+Val dataset has 176 images and 176 batches.
+Model parameters: 631615
+Initial Training Epoch 1: Loss=41.8301
+Val Epoch 1: PSNR=0.1383, SSIM=nan
+Training done.

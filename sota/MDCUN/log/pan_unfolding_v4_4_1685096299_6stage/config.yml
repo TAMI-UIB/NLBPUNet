@@ -1,0 +1,55 @@
+algorithm: pan_unfolding_v4
+checkpoint: /home/user/Recerca/UIB/runs
+data:
+  batch_size: 1
+  data_augmentation: false
+  n_colors: 4
+  normalize: false
+  patch_size: 32
+  rgb_range: 255
+  upscale: 4
+data_dir_eval: /home/user/Recerca/UIB/datasets
+data_dir_train: /home/user/Recerca/UIB/datasets
+dataset: ALSACE
+gpu_mode: false
+gpus:
+- 0
+in_channels: 3
+middle_channels: 64
+nEpochs: 1000
+n_resblocks: 2
+name: pan_unfolding
+out_channels: 3
+pretrain:
+  pre_folder: /home/yanggang/code/PAN_unfloding/checkpoint_gppnn_WV2
+  pre_sr: 1592134968/best.pth
+  pretrained: false
+res_scale: 1
+save_best: true
+schedule:
+  alpha: 0.9
+  beta1: 0.9
+  beta2: 0.999
+  decay: 20
+  epsilon: 1.0e-08
+  gamma: 0.5
+  gclip: 0.04
+  loss: L1
+  lr: 0.0005
+  momentum: 0.9
+  optimizer: ADAM
+  use_YCbCr: false
+  weight_dency: 0
+seed: 123
+source_ms: ms
+source_pan: pan
+stage: 6
+test:
+  algorithm: gppnn
+  data_dir: /home/z/DataStorage/YangGang_dataset/PAN_sharpen_dataset/WV2_data/test128
+  model: pan_unfolding_v4_4_1634800468_6stage/best.pth
+  save_dir: /home/yanggang/code/PAN_unfloding/results/gppnn_WV2
+  source_ms: ms
+  source_pan: pan
+  type: test
+threads: 8
