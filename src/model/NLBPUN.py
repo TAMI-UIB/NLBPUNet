@@ -4,61 +4,62 @@ import torch
 from torch import nn
 
 from .operators.downsamplings import Downsamp_4_2
-from .operators.multi_attention_resnet import ResBlock, MultiHeadAttentionEsDot
+from .operators.attention import MultiHeadAttention
+from .operators.residual import ResBlock
 
 from .operators.upsamplings import UpSamp_4_2
 
-class MARNetNZ(torch.nn.Module):
+class Res_NL(torch.nn.Module):
     def __init__(self, u_channels, pan_channels, features_channels, patch_size, window_size, kernel_size=3):
         super().__init__()
-        self.N, self.C, self.H, self.W = 1, 3, 256, 256
 
         self.features_channels = features_channels
-        # Residual blocks and related convolution
-        self.ResNet_features = nn.Conv2d(in_channels=u_channels, out_channels=features_channels,
-                                         kernel_size=kernel_size, stride=1, bias=False, padding=kernel_size // 2)
-        self.res1 = ResBlock(kernel_size=kernel_size, in_channels=features_channels+5+5)
-        self.res2 = ResBlock(kernel_size=kernel_size, in_channels=features_channels+5+5)
-        self.res3 = ResBlock(kernel_size=kernel_size, in_channels=features_channels+5+5)
-        self.ResNet_recon = nn.Conv2d(in_channels=features_channels+5+5, out_channels=u_channels, kernel_size=kernel_size,
-                                      stride=1, bias=False, padding=kernel_size // 2)
-        # Multi Attention blocks and related convolution
-        self.MultiAtt_features_u = nn.Conv2d(in_channels=u_channels, out_channels=5, kernel_size=kernel_size, stride=1,
-                                             bias=False, padding=kernel_size // 2)
-        self.ResNet_features_inter = nn.Conv2d(in_channels=u_channels, out_channels=5, kernel_size=kernel_size, stride=1,
-                                               bias=False, padding=kernel_size // 2)
-        self.MultiAtt_features_pan = nn.Conv2d(in_channels=pan_channels, out_channels=3, kernel_size=kernel_size, stride=1,
-                                               bias=False, padding=kernel_size // 2)
 
-        self.MultiAtt_recon = nn.Conv2d(in_channels=5, out_channels=u_channels, kernel_size=kernel_size, stride=1,
+        # Nonlocal layers
+        self.NL_feat_u = nn.Conv2d(in_channels=u_channels, out_channels=5, kernel_size=kernel_size, stride=1,
+                                   bias=False, padding=kernel_size // 2)
+        self.NL_feat_pan = nn.Conv2d(in_channels=pan_channels, out_channels=3, kernel_size=kernel_size, stride=1,
+                                     bias=False, padding=kernel_size // 2)
+
+        self.NL_recon = nn.Conv2d(in_channels=5, out_channels=u_channels, kernel_size=kernel_size, stride=1,
+                                  bias=False, padding=kernel_size // 2)
+        self.Nonlocal = MultiHeadAttention(u_channels=5, pan_channels=3, patch_size=patch_size,
+                                           window_size=window_size)
+        # Residual layers
+        self.res_feat_u = nn.Conv2d(in_channels=u_channels, out_channels=features_channels,
+                                    kernel_size=kernel_size, stride=1, bias=False, padding=kernel_size // 2)
+        self.res_feat_inter = nn.Conv2d(in_channels=u_channels, out_channels=5, kernel_size=kernel_size, stride=1,
                                         bias=False, padding=kernel_size // 2)
-        self.multi_head = MultiHeadAttentionEsDot(u_channels=5, pan_channels=3, patch_size=patch_size,
-                                                  window_size=window_size)
+        self.res_recon = nn.Conv2d(in_channels=features_channels + 5 + 5, out_channels=u_channels,
+                                   kernel_size=kernel_size,
+                                   stride=1, bias=False, padding=kernel_size // 2)
+        self.residual = nn.Sequential(*[ResBlock(kernel_size=kernel_size, in_channels=features_channels + 5 + 5) for _ in range(3)])
+
+
 
     def forward(self, u, inter, pan):
         # Multi Attention Component
-        u_features = self.MultiAtt_features_u(u)
-        pan_features = self.MultiAtt_features_pan(pan)
-        u_multi_att = self.multi_head(u_features, pan_features)
-        # Residual Component
-        inter_features = self.ResNet_features_inter(inter)
-        u_features = self.ResNet_features(u)
-        u_aux = torch.cat([u_multi_att, u_features, inter_features], dim=1)
-        res1 = self.res1(u_aux)
-        res2 = self.res2(res1)
-        res3 = self.res3(res2)
+        u_features = self.NL_feat_u(u)
+        pan_features = self.NL_feat_pan(pan)
+        u_multi_att = self.Nonlocal(u_features, pan_features)
 
-        return self.ResNet_recon(res3)
+        # Residual Component
+        inter_features = self.res_feat_inter(inter)
+        u_features = self.res_feat_u(u)
+        u_aux = torch.cat([u_multi_att, u_features, inter_features], dim=1)
+        res = self.residual(u_aux)
+
+        return self.res_recon(res)
 
 
 class NLBP(nn.Module):
     def __init__(self, hyper_channels, multi_channels):
         super().__init__()
-        self.MARNet = MARNetNZ(u_channels=hyper_channels, pan_channels=multi_channels,
+        self.ResNL = Res_NL(u_channels=hyper_channels, pan_channels=multi_channels,
                                features_channels=32, patch_size=3, window_size=7, kernel_size=3)
 
     def forward(self, u, pan_lf, pan, hs_inter):
-        return u+self.MARNet(hs_inter*pan-u*pan_lf, hs_inter, pan)
+        return u+self.ResNL(hs_inter*pan-u*pan_lf, hs_inter, pan)
 
 
 class NLBPUN(nn.Module):

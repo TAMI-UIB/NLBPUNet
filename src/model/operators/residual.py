@@ -34,3 +34,17 @@ class ConvBatchnormRelu(nn.Module):
     def forward(self, x):
         x = self.conv(x)
         return x
+
+
+class ResBlock(nn.Module):
+    def __init__(self,  kernel_size, in_channels):
+        super(ResBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=kernel_size//2)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv2 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=kernel_size//2)
+
+    def forward(self, x):
+        features = self.conv1(x)
+        features = self.relu(features)
+        features = self.conv2(features)
+        return self.relu(features + x)

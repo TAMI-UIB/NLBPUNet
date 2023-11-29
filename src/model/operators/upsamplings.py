@@ -1,7 +1,7 @@
 from torch import nn
 import torch
 
-from .residual_networks import EdgeProtector
+from .residual import EdgeProtector
 
 
 class UpSamp_4_2(nn.Module):

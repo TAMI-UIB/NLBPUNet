@@ -1,5 +1,7 @@
 from .L1 import L1
+from .MSE import MSE
 
 dict_loss = {
-    'L1': L1
+    'MSE': MSE,
+    'L1': L1,
 }

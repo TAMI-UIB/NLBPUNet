@@ -37,7 +37,7 @@ class TensorboardWriter:
         fig, axs = plt.subplots(n_images, n_plots, figsize=(5 * width, n_images * height))
         for j, axs_row in enumerate(axs):
             for i, (k, v) in enumerate(images):
-                axs_row[i].imshow(self._scaleminmax(self._image_transform(v[j])).detach().numpy())
+                axs_row[i].imshow(self._scaleminmax(self._image_transform(v[j]).cpu()).detach().numpy())
                 axs_row[i].set_title(k)
 
             [ax.axis("off") for ax in axs_row]

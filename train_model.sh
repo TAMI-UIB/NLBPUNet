@@ -1,1 +1,1 @@
-python train main.py
+python main.py train --model NLBPUN
