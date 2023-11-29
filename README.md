@@ -30,13 +30,13 @@ Set classes in `config.py` for default values. Pass params to the `main.py` as s
 python train --model GPPNN --model-params hyper_channels=4 --dataset-params scaling=4
 ```
 To test new datasets (see StMichel as example):
-1. Add <new class>.py to dataset directory
+1. Add `<new class>.py` to dataset directory
 2. Add new class to `src/dataset/__init__.py`'s dict_dataset
 3. Inputs and outputs should be dicts
 
 
 To test new model (see NLBPUN as example):
-1. Add <new class>.py to model directory
+1. Add `<new class>.py` to model directory
 2. Add new class to `src/model/__init__.py`'s dict_model
 3. Inputs and outputs should be dicts
 
