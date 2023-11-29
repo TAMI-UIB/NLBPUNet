@@ -47,5 +47,9 @@ DATASET_PATH="" # path to find all de datasets
 SAVE_PATH="" # path to save tensorboard data
 EVAL_FREQ=100  # % frequency to print to tensorboard
 ```
-
+## SOTA
+In this project we have compared our code with [MDCUN](https://github.com/yggame/MDCUN),
+[NLRNet](https://github.com/Ding-Liu/NLRN) and [GPPNN](https://github.com/shuangxu96/GPPNN). 
+And we get the classic methods from [Classic Methods](https://github.com/codegaj/py_pansharpening)
+The original authors keep all the rights of the compared codes 
 ## Bibtex

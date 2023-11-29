@@ -6,8 +6,6 @@ class L1(nn.Module):
         super(L1, self).__init__()
         self.l1 = nn.L1Loss()
 
-    def forward(self, **kwargs):
-        gt = kwargs['gt']
-        fused = kwargs['fused']
+    def forward(self, gt, fused, **kwargs):
         l1 = self.l1(gt, fused)
         return l1, {}

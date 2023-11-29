@@ -47,7 +47,7 @@ class Experiment:
 
         self.device = torch.device(train_params.get('device')) if train_params.get('device') else device
         self.eval_n = max(int(train_params['max_epochs'] * (float(os.environ.get('EVAL_FREQ', 100)) / 100)), 1)
-        self.save_path = os.path.join(os.environ["SAVE_PATH"], dataset, dt.now().strftime("%Y-%m-%d"), model)
+        self.save_path = os.path.join(os.environ["SAVE_PATH"], dataset, model, dt.now().strftime("%Y-%m-%d"))
         self.max_epochs = train_params['max_epochs']
         self.batch_size = train_params['batch_size']
 

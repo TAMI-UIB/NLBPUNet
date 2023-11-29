@@ -68,12 +68,12 @@ class NLBPUN(nn.Module):
             hyper_channels,
             multi_channels,
             iter_stages,
+            sampling,
             device='cpu',
-            std_noise=None,
             **kwargs
     ):
         super(NLBPUN, self).__init__()
-        self.sampling = kwargs['downsamp_factor']
+        self.sampling = sampling
         self.downsamp_ms = Downsamp_4_2(channels=multi_channels, depthwise_multiplier=1)
         self.upsamp_lf = nn.Sequential(*[nn.ConvTranspose2d(hyper_channels, hyper_channels, stride=4, kernel_size=3,
                                                             padding=1, output_padding=3, bias=False),
@@ -89,7 +89,7 @@ class NLBPUN(nn.Module):
         self.iter_stages = iter_stages
         self.device = device
 
-    def forward(self, pan, hs):
+    def forward(self, pan, hs, **kwargs):
         pan_d2, pan_low = self.downsamp_ms(pan)
         pan_lf = self.upsamp_ms(pan_low)
         hf_up = self.upsamp_lf(hs)
@@ -99,7 +99,7 @@ class NLBPUN(nn.Module):
         for i in range(self.iter_stages):
             u = self.NZDBP[i](u, pan_lf, pan, hf_up)
 
-        return u, None, self.DB(u)-hs, None
+        return dict(fused=u)
 
     def DB(self, u):
         size = u.size()
